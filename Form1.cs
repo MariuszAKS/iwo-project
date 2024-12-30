@@ -1,7 +1,20 @@
+using System.Numerics;
+
 namespace IWO
 {
+    enum StartPopulationArrangement {
+        Random, Center, Borders, Grid
+    }
+
+    class Weed
+    {
+        public Vector2 position;
+    }
+
     public partial class Form1 : Form
     {
+        private StartPopulationArrangement arrangement = StartPopulationArrangement.Random;
+
         private int populationSize = 0;
         private int maxPopulationSize = 0;
 
@@ -46,10 +59,17 @@ namespace IWO
 
         private void InitiatePopulation()
         {
-            for (int i = 0; i < populationSize; i++)
+            switch (arrangement)
             {
-                ;
+                case StartPopulationArrangement.Random:
+                    for (int i = 0; i < populationSize; i++)
+                    {
+                        ;
+                    }
+                    break;
             }
+
+            
         }
 
 

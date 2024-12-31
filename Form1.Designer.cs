@@ -39,6 +39,10 @@
             listB_errorMessages = new ListBox();
             picB_populationSpace = new PictureBox();
             picB_bestFitnessChart = new PictureBox();
+            cmbBox_testFunction = new ComboBox();
+            cmbBox_initialPopulationArrangement = new ComboBox();
+            label4 = new Label();
+            label5 = new Label();
             ((System.ComponentModel.ISupportInitialize)numUD_initialPopulationSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numUD_maxPopulationSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numUD_generationsCount).BeginInit();
@@ -48,14 +52,14 @@
             // 
             // numUD_initialPopulationSize
             // 
-            numUD_initialPopulationSize.Location = new Point(12, 27);
+            numUD_initialPopulationSize.Location = new Point(139, 12);
             numUD_initialPopulationSize.Name = "numUD_initialPopulationSize";
             numUD_initialPopulationSize.Size = new Size(120, 23);
             numUD_initialPopulationSize.TabIndex = 0;
             // 
             // numUD_maxPopulationSize
             // 
-            numUD_maxPopulationSize.Location = new Point(12, 71);
+            numUD_maxPopulationSize.Location = new Point(139, 35);
             numUD_maxPopulationSize.Name = "numUD_maxPopulationSize";
             numUD_maxPopulationSize.Size = new Size(120, 23);
             numUD_maxPopulationSize.TabIndex = 1;
@@ -73,7 +77,7 @@
             // chkB_stepVisualization
             // 
             chkB_stepVisualization.AutoSize = true;
-            chkB_stepVisualization.Location = new Point(12, 209);
+            chkB_stepVisualization.Location = new Point(80, 466);
             chkB_stepVisualization.Name = "chkB_stepVisualization";
             chkB_stepVisualization.Size = new Size(131, 19);
             chkB_stepVisualization.TabIndex = 3;
@@ -82,7 +86,7 @@
             // 
             // numUD_generationsCount
             // 
-            numUD_generationsCount.Location = new Point(12, 130);
+            numUD_generationsCount.Location = new Point(139, 64);
             numUD_generationsCount.Name = "numUD_generationsCount";
             numUD_generationsCount.Size = new Size(120, 23);
             numUD_generationsCount.TabIndex = 4;
@@ -90,7 +94,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(12, 9);
+            label1.Location = new Point(12, 14);
             label1.Name = "label1";
             label1.Size = new Size(120, 15);
             label1.TabIndex = 5;
@@ -99,7 +103,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(12, 53);
+            label2.Location = new Point(18, 37);
             label2.Name = "label2";
             label2.Size = new Size(114, 15);
             label2.TabIndex = 6;
@@ -108,7 +112,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(12, 112);
+            label3.Location = new Point(27, 66);
             label3.Name = "label3";
             label3.Size = new Size(106, 15);
             label3.TabIndex = 7;
@@ -139,11 +143,51 @@
             picB_bestFitnessChart.TabIndex = 11;
             picB_bestFitnessChart.TabStop = false;
             // 
+            // cmbBox_testFunction
+            // 
+            cmbBox_testFunction.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbBox_testFunction.FormattingEnabled = true;
+            cmbBox_testFunction.Location = new Point(139, 122);
+            cmbBox_testFunction.Name = "cmbBox_testFunction";
+            cmbBox_testFunction.Size = new Size(120, 23);
+            cmbBox_testFunction.TabIndex = 12;
+            // 
+            // cmbBox_initialPopulationArrangement
+            // 
+            cmbBox_initialPopulationArrangement.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbBox_initialPopulationArrangement.FormattingEnabled = true;
+            cmbBox_initialPopulationArrangement.Location = new Point(139, 93);
+            cmbBox_initialPopulationArrangement.Name = "cmbBox_initialPopulationArrangement";
+            cmbBox_initialPopulationArrangement.Size = new Size(120, 23);
+            cmbBox_initialPopulationArrangement.TabIndex = 13;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(12, 96);
+            label4.Name = "label4";
+            label4.Size = new Size(121, 15);
+            label4.TabIndex = 14;
+            label4.Text = "Init Pop Arrangement";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(57, 125);
+            label5.Name = "label5";
+            label5.Size = new Size(75, 15);
+            label5.TabIndex = 15;
+            label5.Text = "Test function";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1264, 761);
+            Controls.Add(label5);
+            Controls.Add(label4);
+            Controls.Add(cmbBox_initialPopulationArrangement);
+            Controls.Add(cmbBox_testFunction);
             Controls.Add(picB_bestFitnessChart);
             Controls.Add(picB_populationSpace);
             Controls.Add(listB_errorMessages);
@@ -179,5 +223,9 @@
         private ListBox listB_errorMessages;
         private PictureBox picB_populationSpace;
         private PictureBox picB_bestFitnessChart;
+        private ComboBox cmbBox_testFunction;
+        private ComboBox cmbBox_initialPopulationArrangement;
+        private Label label4;
+        private Label label5;
     }
 }

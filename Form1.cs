@@ -50,8 +50,7 @@ namespace IWO
         private Bitmap populationBitmap;
         private Graphics populationGraphics;
         private Pen populationPen;
-        private Pen populationEraser;
-        private Color populationColor = Color.DarkGreen;
+        private Color populationColor = Color.White;
 
         private Bitmap fitnessBitmap;
         private Graphics fitnessGraphics;
@@ -66,6 +65,7 @@ namespace IWO
 
             PrepareGraphics();
             GetInitialValuesFromUI();
+            SetUpSimulationTimer();
             PopulateComboBoxes();
         }
 
@@ -74,8 +74,6 @@ namespace IWO
             populationBitmap = new Bitmap(picB_populationSpace.Width, picB_populationSpace.Height);
             populationGraphics = Graphics.FromImage(populationBitmap);
             populationPen = new Pen(populationColor, 2);
-
-            picB_populationSpace.Image = populationBitmap;
 
             positionOnScreenModifier.Y = picB_populationSpace.Height / (testFunction.Height);
             positionOnScreenModifier.X = picB_populationSpace.Width / (testFunction.Width);
@@ -103,6 +101,25 @@ namespace IWO
 
             cmbBox_initialPopulationArrangement.SelectedIndex = 0;
             cmbBox_testFunction.SelectedIndex = 0;
+        }
+
+        private void SetUpSimulationTimer()
+        {
+            simulationTimer.Interval = 100;
+            simulationTimer.Tick += (sender, args) =>
+            {
+                if (currentGenerationId < maxGenerationId)
+                {
+                    currentGenerationId++;
+
+                    SimulationStep();
+                    UpdatePopulationDisplay();
+                }
+                else
+                {
+                    simulationTimer.Stop();
+                }
+            };
         }
 
         
@@ -184,7 +201,7 @@ namespace IWO
 
         private void InitiatePopulation()
         {
-            ClearPopulationDisplay();
+            //ClearPopulationDisplay();
             currentWeedPopulation.Clear();
 
             Random rng = new();
@@ -291,22 +308,6 @@ namespace IWO
             if (CheckStartingConditions())
             {
                 currentGenerationId = 0;
-                simulationTimer.Interval = 100;
-                simulationTimer.Tick += (sender, args) =>
-                {
-                    if (currentGenerationId < maxGenerationId)
-                    {
-                        currentGenerationId++;
-
-                        ClearPopulationDisplay();
-                        SimulationStep();
-                        UpdatePopulationDisplay();
-                    }
-                    else
-                    {
-                        simulationTimer.Stop();
-                    }
-                };
 
                 simulationTimer.Start();
             }
@@ -365,7 +366,6 @@ namespace IWO
                 int seeds = CalculateAmountOfSeeds(weed);
                 float currentSigma = CalculateCurrentSigma(); // sigma is to make new offspring appear closer to parents as time goes on
                 float currentMaxDistance = initialOffspringMaxDistance * currentSigma;
-                Debug.WriteLine($"{currentSigma} {currentMaxDistance}");
 
                 for (int i = 0; i < seeds; i++)
                 {
@@ -415,30 +415,31 @@ namespace IWO
         }
 
 
-
-        private void ClearPopulationDisplay()
-        {
-            populationGraphics.Clear(Color.White);
-            //foreach (Weed weed in currentWeedPopulation)
-            //{
-            //    int ellipseStartX = (int)((weed.position.X - testFunction.MinX) * positionOnScreenModifier.X) - 1;
-            //    int ellipseStartY = (int)((weed.position.Y - testFunction.MinY) * positionOnScreenModifier.Y) - 1;
-
-            //    populationGraphics.DrawEllipse(populationEraser, ellipseStartX, ellipseStartY, 2, 2);
-            //}
-        }
-
         private void UpdatePopulationDisplay()
         {
+            populationGraphics.Clear(Color.Transparent);
+
             foreach (Weed weed in currentWeedPopulation)
             {
-                int ellipseStartX = (int)((weed.position.X - testFunction.MinX) * positionOnScreenModifier.X) - 1;
-                int ellipseStartY = (int)((weed.position.Y - testFunction.MinY) * positionOnScreenModifier.Y) - 1;
+                int rectangleStartX = (int)((weed.position.X - testFunction.MinX) * positionOnScreenModifier.X) - 1;
+                int rectangleStartY = (int)((weed.position.Y - testFunction.MinY) * positionOnScreenModifier.Y) - 1;
 
-                populationGraphics.DrawEllipse(populationPen, ellipseStartX, ellipseStartY, 2, 2);
+                populationGraphics.DrawRectangle(populationPen, rectangleStartX, rectangleStartY, 2, 2);
             }
 
-            picB_populationSpace.Refresh();
+            CombineLayers();
+        }
+
+        private void CombineLayers()
+        {
+            Bitmap combinedBitmap = new Bitmap(picB_populationSpace.Width, picB_populationSpace.Height);
+            Graphics combinedGraphics = Graphics.FromImage(combinedBitmap);
+
+            combinedGraphics.DrawImage(testFunction.GetImage(), 0, 0, combinedBitmap.Width, combinedBitmap.Height);
+            combinedGraphics.DrawImage(populationBitmap, 0, 0);
+            
+            picB_populationSpace.Image?.Dispose();
+            picB_populationSpace.Image = combinedBitmap;
         }
     }
 }

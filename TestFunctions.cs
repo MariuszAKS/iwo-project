@@ -15,11 +15,12 @@ namespace IWO
         Rosenbrock,
         Beale,
         Goldstein_Price,
+        Booth,
         Bukin_N6,
         Matyas,
         Levi_N13,
         Griewank,
-        Himmerblaus,
+        Himmelblaus,
         Three_Hump_Camel,
         Easom,
         Cross_In_Tray,
@@ -154,7 +155,7 @@ namespace IWO
                     GlobalMinValue = GriewankFunction.global_min_value;
                     calculateValueHandler = GriewankFunction.CalculateValue;
                     break;
-                case TestFunctionEnum.Himmerblaus:
+                case TestFunctionEnum.Himmelblaus:
                     Name = HimmelblausFunction.name;
                     MinX = HimmelblausFunction.min_x;
                     MaxX = HimmelblausFunction.max_x;
@@ -249,6 +250,11 @@ namespace IWO
             Height = MaxY - MinY;
             Width = MaxX - MinX;
         }
+
+        public Image GetImage()
+        {
+            return (Image)Properties.Resources.ResourceManager.GetObject(Function.ToString());
+        }
     }
 
     static class RastriginFunction
@@ -259,10 +265,11 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 80;
 
         public static double CalculateValue(float x, float y)
         {
-            return 20 * ((x * x - 10 * Math.Cos(2 * Math.PI * x)) + (y * y - 10 * Math.Cos(2 * Math.PI * y)));
+            return 20 + (x * x - 10 * Math.Cos(2 * Math.PI * x)) + (y * y - 10 * Math.Cos(2 * Math.PI * y));
         }
     }
 
@@ -274,6 +281,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 14;
 
         public static double CalculateValue(float x, float y)
         {
@@ -287,11 +295,12 @@ namespace IWO
     static class SphereFunction
     {
         public static readonly string name = "Sphere function";
-        public const float min_x = -1000, max_x = 1000;
-        public const float min_y = -1000, max_y = 1000;
+        public const float min_x = -2, max_x = 2;
+        public const float min_y = -2, max_y = 2;
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 8;
 
         public static double CalculateValue(float x, float y)
         {
@@ -302,11 +311,12 @@ namespace IWO
     static class RosenbrockFunction
     {
         public static readonly string name = "Rosenbrock function";
-        public const float min_x = -1000, max_x = 1000;
-        public const float min_y = -1000, max_y = 1000;
+        public const float min_x = -2, max_x = 2;
+        public const float min_y = -1, max_y = 3;
 
         public static readonly Vector2[] global_min_positions = [new(1, 1)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 1000;
 
         public static double CalculateValue(float x, float y)
         {
@@ -322,6 +332,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(3, 0.5f)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 100000;
 
         public static double CalculateValue(float x, float y)
         {
@@ -341,6 +352,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(0, -1)];
         public static readonly double global_min_value = 3;
+        public static readonly double max_color_value = 2000000;
 
         public static double CalculateValue(float x, float y)
         {
@@ -348,6 +360,22 @@ namespace IWO
             double second_part = 30 + Math.Pow(2 * x - 3 * y, 2) * (18 - 32 * x + 12 * x * x + 48 * y - 36 * x * y + 27 * y * y);
 
             return first_part * second_part;
+        }
+    }
+
+    static class BoothFunction
+    {
+        public static readonly string name = "Booth function";
+        public const float min_x = -10, max_x = 10;
+        public const float min_y = -10, max_y = 10;
+
+        public static readonly Vector2[] global_min_positions = [new(1, 3)];
+        public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 3000;
+
+        public static double CalculateValue(float x, float y)
+        {
+            return Math.Pow(x + 2 * y - 7, 2) + Math.Pow(2 * x + y - 5, 2);
         }
     }
 
@@ -359,6 +387,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(-10, 1)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 250;
 
         public static double CalculateValue(float x, float y)
         {
@@ -374,6 +403,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 100;
 
         public static double CalculateValue(float x, float y)
         {
@@ -389,6 +419,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(1, 1)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 130;
 
         public static double CalculateValue(float x, float y)
         {
@@ -408,6 +439,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 2;
 
         public static double CalculateValue(float x, float y)
         {
@@ -423,6 +455,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(3, 2), new(-2.805118f, 3.131312f), new(-3.779310f, -3.283186f), new(3.584428f, -1.848126f)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 1000;
 
         public static double CalculateValue(float x, float y)
         {
@@ -438,6 +471,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 1000;
 
         public static double CalculateValue(float x, float y)
         {
@@ -453,6 +487,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(MathF.PI, MathF.PI)];
         public static readonly double global_min_value = -1;
+        public static readonly double max_color_value = 0;
 
         public static double CalculateValue(float x, float y)
         {
@@ -468,6 +503,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(1.34941f, 1.34941f), new(-1.34941f, 1.34941f), new(1.34941f, -1.34941f), new(-1.34941f, -1.34941f)];
         public static readonly double global_min_value = -2.06261;
+        public static readonly double max_color_value = 0;
 
         public static double CalculateValue(float x, float y)
         {
@@ -483,6 +519,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(512, 404.2319f)];
         public static readonly double global_min_value = -959.6407;
+        public static readonly double max_color_value = 2000;
 
         public static double CalculateValue(float x, float y)
         {
@@ -498,6 +535,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(8.05502f, 9.66459f), new(-8.05502f, 9.66459f), new(8.05502f, -9.66459f), new(-8.05502f, -9.66459f)];
         public static readonly double global_min_value = -19.2085;
+        public static readonly double max_color_value = 0;
 
         public static double CalculateValue(float x, float y)
         {
@@ -513,6 +551,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(-0.54719f, -1.54719f)];
         public static readonly double global_min_value = -1.9133;
+        public static readonly double max_color_value = 65;
 
         public static double CalculateValue(float x, float y)
         {
@@ -528,6 +567,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
+        public static readonly double max_color_value = 1;
 
         public static double CalculateValue(float x, float y)
         {
@@ -543,6 +583,7 @@ namespace IWO
 
         public static readonly Vector2[] global_min_positions = [new(0, 1.25313f), new(0, -1.25313f), new(1.25313f, 0), new(-1.25313f, 0)];
         public static readonly double global_min_value = 0.292579;
+        public static readonly double max_color_value = 1;
 
         public static double CalculateValue(float x, float y)
         {

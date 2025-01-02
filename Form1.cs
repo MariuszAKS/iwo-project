@@ -1,39 +1,93 @@
+using System.Diagnostics;
 using System.Numerics;
+using Timer = System.Windows.Forms.Timer;
 using System.Xml.Linq;
 
 namespace IWO
 {
     enum StartPopulationArrangement {
-        Random, Center, Borders, Grid
+        Random, Center, Corners, Grid
     }
-
-    public delegate double CalculateValue(float x, float y);
 
     public partial class Form1 : Form
     {
-        private StartPopulationArrangement arrangement = StartPopulationArrangement.Random;
-        private TestFunction testFunction = TestFunction.Rastrigin;
+        class Weed : IComparable<Weed>
+        {
+            public Vector2 position = new(0, 0);
+            public double fitness = 0;
 
-        private int populationSize = 0;
+            public int CompareTo(Weed? obj)
+            {
+                return fitness.CompareTo(obj?.fitness);
+            }
+        }
+
+        private StartPopulationArrangement arrangement = StartPopulationArrangement.Random;
+
+        private int initialPopulationSize = 0;
         private int maxPopulationSize = 0;
 
-        private int generationId = 0;
-        private int maxGeneration = 0;
+        private int currentGenerationId = 0;
+        private int maxGenerationId = 0;
 
-        private float min_x = RastriginFunction.min_x, max_x = RastriginFunction.max_x;
-        private float min_y = RastriginFunction.min_y, max_y = RastriginFunction.max_y;
-        private Vector2[] global_min_positions = RastriginFunction.global_min_positions;
-        private double global_min_value = RastriginFunction.global_min_value;
+        private int seedMin = 0, seedMax = 0;
 
-        CalculateValue calculateValueHandler = RastriginFunction.CalculateValue;
+        private TestFunction testFunction = new();
+        private List<Weed> currentWeedPopulation = [];
 
-        Weed[] weedPopulation;
+        private double best_fitness, worst_fitness;
+
+        private Timer simulationTimer = new();
+
+        // Variables for calculating new weed's position
+        private int n = 2; // here to decide how fast sigma tends to 0 (higher = faster, 1 = linear, n<1 = faster near end, n>1 = slower near end, n=0 doesn't change, n<0 = goes to infinity)
+        private float sigmaInit = 1.0f;
+        private float sigmaFinal = 0.001f;
+        private float initialOffspringMaxDistance;
+
+        // Variables for displaying results
+        private Vector2 positionOnScreenModifier;
+        private Bitmap populationBitmap;
+        private Graphics populationGraphics;
+        private Pen populationPen;
+        private Pen populationEraser;
+        private Color populationColor = Color.DarkGreen;
+
+        private Bitmap fitnessBitmap;
+        private Graphics fitnessGraphics;
+        private Pen fitnessPen;
+        private Color fitnessColor = Color.Black;
+
+
 
         public Form1()
         {
             InitializeComponent();
 
+            PrepareGraphics();
+            GetInitialValuesFromUI();
             PopulateComboBoxes();
+        }
+
+        private void PrepareGraphics()
+        {
+            populationBitmap = new Bitmap(picB_populationSpace.Width, picB_populationSpace.Height);
+            populationGraphics = Graphics.FromImage(populationBitmap);
+            populationPen = new Pen(populationColor, 2);
+
+            picB_populationSpace.Image = populationBitmap;
+
+            positionOnScreenModifier.Y = picB_populationSpace.Height / (testFunction.Height);
+            positionOnScreenModifier.X = picB_populationSpace.Width / (testFunction.Width);
+        }
+
+        private void GetInitialValuesFromUI() // It's here to update values in code by values set up in editor (before running the app)
+        {
+            numUD_initialPopulationSize_ValueChanged(numUD_initialPopulationSize, EventArgs.Empty);
+            numUD_maxPopulationSize_ValueChanged(numUD_maxPopulationSize, EventArgs.Empty);
+            numUD_generationsCount_ValueChanged(numUD_generationsCount, EventArgs.Empty);
+            numUD_seedMin_ValueChanged(numUD_seedMin, EventArgs.Empty);
+            numUD_seedMax_ValueChanged(numUD_seedMax, EventArgs.Empty);
         }
 
         private void PopulateComboBoxes()
@@ -42,7 +96,7 @@ namespace IWO
             {
                 cmbBox_initialPopulationArrangement.Items.Add(arr.ToString());
             }
-            foreach (TestFunction tst in Enum.GetValues(typeof(TestFunction)))
+            foreach (TestFunctionEnum tst in Enum.GetValues(typeof(TestFunctionEnum)))
             {
                 cmbBox_testFunction.Items.Add(tst.ToString());
             }
@@ -51,28 +105,218 @@ namespace IWO
             cmbBox_testFunction.SelectedIndex = 0;
         }
 
+        
+
+        private void numUD_initialPopulationSize_ValueChanged(object sender, EventArgs e)
+        {
+            initialPopulationSize = (int)numUD_initialPopulationSize.Value;
+            InitiatePopulation();
+        }
+
+        private void numUD_maxPopulationSize_ValueChanged(object sender, EventArgs e)
+        {
+            maxPopulationSize = (int)numUD_maxPopulationSize.Value;
+        }
+
+        private void numUD_generationsCount_ValueChanged(object sender, EventArgs e)
+        {
+            maxGenerationId = (int)numUD_generationsCount.Value;
+        }
+
+        private void numUD_seedMin_ValueChanged(object sender, EventArgs e)
+        {
+            seedMin = (int)numUD_seedMin.Value;
+
+            if (seedMin > seedMax)
+            {
+                numUD_seedMax.Value = seedMin;
+            }
+        }
+
+        private void numUD_seedMax_ValueChanged(object sender, EventArgs e)
+        {
+            seedMax = (int)numUD_seedMax.Value;
+
+            if (seedMax < seedMin)
+            {
+                numUD_seedMin.Value = seedMax;
+            }
+        }
+
+
+
+        private void cmbBox_testFunction_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateTestFunction();
+            InitiatePopulation();
+        }
+
+        private void cmbBox_initialPopulationArrangement_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            arrangement = (StartPopulationArrangement)cmbBox_initialPopulationArrangement.SelectedIndex;
+            InitiatePopulation();
+        }
+
+        private void btn_repopulate_Click(object sender, EventArgs e)
+        {
+            InitiatePopulation();
+        }
+
+        private void UpdateTestFunction()
+        {
+            testFunction.ChangeTestFunction((TestFunctionEnum)cmbBox_testFunction.SelectedIndex);
+
+            positionOnScreenModifier.Y = picB_populationSpace.Height / (testFunction.Height);
+            positionOnScreenModifier.X = picB_populationSpace.Width / (testFunction.Width);
+
+            lbl_bordersX.Text = $"< {testFunction.MinX} ; {testFunction.MaxX} >";
+            lbl_bordersY.Text = $"< {testFunction.MinY} ; {testFunction.MaxY} >";
+            lbl_minPositions.Text = "";
+            lbl_minValue.Text = $"{testFunction.GlobalMinValue}";
+
+            foreach (Vector2 pos in testFunction.GlobalMinPositions)
+            {
+                lbl_minPositions.Text += $"( {pos.X} ; {pos.Y} ) \n";
+            }
+
+            initialOffspringMaxDistance = Math.Min(testFunction.Height, testFunction.Width) * 0.25f; // initially max potendial distance is 1/4 of smaller dimension
+        }
+
+        private void InitiatePopulation()
+        {
+            ClearPopulationDisplay();
+            currentWeedPopulation.Clear();
+
+            Random rng = new();
+            int i = 0;
+
+            float center_x = testFunction.MinX + testFunction.Width / 2;
+            float center_y = testFunction.MinY + testFunction.Height / 2;
+
+            for (i = 0; i < initialPopulationSize; i++)
+            {
+                currentWeedPopulation.Add(new Weed());
+            }
+
+            switch (arrangement)
+            {
+                case StartPopulationArrangement.Random:
+                    for (i = 0; i < initialPopulationSize; i++)
+                    {
+                        float x = rng.NextSingle() * testFunction.Width + testFunction.MinX;
+                        float y = rng.NextSingle() * testFunction.Height + testFunction.MinY;
+
+                        currentWeedPopulation[i].position = new Vector2(x, y);
+                        currentWeedPopulation[i].fitness = testFunction.calculateValueHandler(x, y);
+                    }
+                    break;
+                case StartPopulationArrangement.Center:
+                    for (i = 0; i < initialPopulationSize; i++)
+                    {
+                        float x = center_x + rng.NextSingle() * (testFunction.Width / 4) - (testFunction.Width / 8);
+                        float y = center_y + rng.NextSingle() * (testFunction.Height / 4) - (testFunction.Height / 8);
+
+                        currentWeedPopulation[i].position = new Vector2(x, y);
+                        currentWeedPopulation[i].fitness = testFunction.calculateValueHandler(x, y);
+                    }
+                    break;
+                case StartPopulationArrangement.Corners:
+                    for (i = 0; i < initialPopulationSize; i++)
+                    {
+                        float x = rng.NextSingle() * (testFunction.Width / 4);
+                        float y = rng.NextSingle() * (testFunction.Height / 4);
+
+                        x = x < testFunction.Width / 8 ? testFunction.MinX + x : x = testFunction.MaxX - x + testFunction.Width / 8;
+                        y = y < testFunction.Height / 8 ? testFunction.MinY + y : y = testFunction.MaxY - y + testFunction.Height / 8;
+
+                        currentWeedPopulation[i].position = new Vector2(x, y);
+                        currentWeedPopulation[i].fitness = testFunction.calculateValueHandler(x, y);
+                    }
+                    break;
+                case StartPopulationArrangement.Grid:
+                    int side_count = (int)Math.Sqrt(initialPopulationSize);
+                    int all_count = side_count * side_count;
+                    float gap_horizontal = testFunction.Width / (side_count + 1);
+                    float gap_vertical = testFunction.Height / (side_count + 1);
+
+                    i = 0;
+                    int ix = 0, iy = 0;
+
+                    while (i < all_count)
+                    {
+                        if (ix == side_count)
+                        {
+                            ix = 0;
+                            iy++;
+                        }
+
+                        float x = testFunction.MinX + gap_horizontal * (ix + 1);
+                        float y = testFunction.MinY + gap_vertical * (iy + 1);
+
+                        currentWeedPopulation[i].position = new Vector2(x, y);
+                        currentWeedPopulation[i].fitness = testFunction.calculateValueHandler(x, y);
+
+                        ix++;
+                        i++;
+                    }
+                    while (i < initialPopulationSize)
+                    {
+                        float x = rng.NextSingle() * testFunction.Width + testFunction.MinX;
+                        float y = rng.NextSingle() * testFunction.Height + testFunction.MinY;
+
+                        currentWeedPopulation[i].position = new Vector2(x, y);
+                        currentWeedPopulation[i].fitness = testFunction.calculateValueHandler(x, y);
+
+                        i++;
+                    }
+                    break;
+            }
+
+            if (currentWeedPopulation.Count > 1)
+            {
+                currentWeedPopulation.Sort();
+                best_fitness = currentWeedPopulation[0].fitness;
+                worst_fitness = currentWeedPopulation[initialPopulationSize - 1].fitness;
+            }
+
+            UpdatePopulationDisplay();
+        }
+
+
 
         private void btn_StartSimulation_Click(object sender, EventArgs e)
         {
             ClearErrorMessages();
 
-            if (GetValuesFromUI())
+            if (CheckStartingConditions())
             {
-                // Start simulation
+                currentGenerationId = 0;
+                simulationTimer.Interval = 100;
+                simulationTimer.Tick += (sender, args) =>
+                {
+                    if (currentGenerationId < maxGenerationId)
+                    {
+                        currentGenerationId++;
+
+                        ClearPopulationDisplay();
+                        SimulationStep();
+                        UpdatePopulationDisplay();
+                    }
+                    else
+                    {
+                        simulationTimer.Stop();
+                    }
+                };
+
+                simulationTimer.Start();
             }
         }
 
-        private bool GetValuesFromUI()
+        private bool CheckStartingConditions()
         {
             bool errorOccured = false;
 
-            populationSize = (int)numUD_initialPopulationSize.Value;
-            maxPopulationSize = (int)numUD_maxPopulationSize.Value;
-
-            generationId = 0;
-            maxGeneration = (int)numUD_generationsCount.Value;
-
-            if (populationSize == 0)
+            if (initialPopulationSize == 0)
             {
                 AddErrorMessage("Population must be bigger than 0");
                 errorOccured = true;
@@ -84,7 +328,6 @@ namespace IWO
             }
 
             arrangement = (StartPopulationArrangement)cmbBox_initialPopulationArrangement.SelectedIndex;
-            testFunction = (TestFunction)cmbBox_testFunction.SelectedIndex;
 
             if (cmbBox_initialPopulationArrangement.SelectedIndex == -1)
             {
@@ -100,269 +343,6 @@ namespace IWO
             return !errorOccured;
         }
 
-        private void GetTestFunctionValues()
-        {
-            switch (testFunction)
-            {
-                case TestFunction.Rastrigin:
-                    min_x = RastriginFunction.min_x;
-                    max_x = RastriginFunction.max_x;
-                    min_y = RastriginFunction.min_y;
-                    max_y = RastriginFunction.max_y;
-                    global_min_positions = RastriginFunction.global_min_positions;
-                    global_min_value = RastriginFunction.global_min_value;
-                    calculateValueHandler = RastriginFunction.CalculateValue;
-                    break;
-                case TestFunction.Ackley:
-                    min_x = AckleyFunction.min_x;
-                    max_x = AckleyFunction.max_x;
-                    min_y = AckleyFunction.min_y;
-                    max_y = AckleyFunction.max_y;
-                    global_min_positions = AckleyFunction.global_min_positions;
-                    global_min_value = AckleyFunction.global_min_value;
-                    calculateValueHandler = AckleyFunction.CalculateValue;
-                    break;
-                case TestFunction.Sphere:
-                    min_x = SphereFunction.min_x;
-                    max_x = SphereFunction.max_x;
-                    min_y = SphereFunction.min_y;
-                    max_y = SphereFunction.max_y;
-                    global_min_positions = SphereFunction.global_min_positions;
-                    global_min_value = SphereFunction.global_min_value;
-                    calculateValueHandler = SphereFunction.CalculateValue;
-                    break;
-                case TestFunction.Rosenbrock:
-                    min_x = RosenbrockFunction.min_x;
-                    max_x = RosenbrockFunction.max_x;
-                    min_y = RosenbrockFunction.min_y;
-                    max_y = RosenbrockFunction.max_y;
-                    global_min_positions = RosenbrockFunction.global_min_positions;
-                    global_min_value = RosenbrockFunction.global_min_value;
-                    calculateValueHandler = RosenbrockFunction.CalculateValue;
-                    break;
-                case TestFunction.Beale:
-                    min_x = BealeFunction.min_x;
-                    max_x = BealeFunction.max_x;
-                    min_y = BealeFunction.min_y;
-                    max_y = BealeFunction.max_y;
-                    global_min_positions = BealeFunction.global_min_positions;
-                    global_min_value = BealeFunction.global_min_value;
-                    calculateValueHandler = BealeFunction.CalculateValue;
-                    break;
-                case TestFunction.Goldstein_Price:
-                    min_x = GoldsteinPriceFunction.min_x;
-                    max_x = GoldsteinPriceFunction.max_x;
-                    min_y = GoldsteinPriceFunction.min_y;
-                    max_y = GoldsteinPriceFunction.max_y;
-                    global_min_positions = GoldsteinPriceFunction.global_min_positions;
-                    global_min_value = GoldsteinPriceFunction.global_min_value;
-                    calculateValueHandler = GoldsteinPriceFunction.CalculateValue;
-                    break;
-                case TestFunction.Bukin_N6:
-                    min_x = BukinN6Function.min_x;
-                    max_x = BukinN6Function.max_x;
-                    min_y = BukinN6Function.min_y;
-                    max_y = BukinN6Function.max_y;
-                    global_min_positions = BukinN6Function.global_min_positions;
-                    global_min_value = BukinN6Function.global_min_value;
-                    calculateValueHandler = BukinN6Function.CalculateValue;
-                    break;
-                case TestFunction.Matyas:
-                    min_x = MatyasFunction.min_x;
-                    max_x = MatyasFunction.max_x;
-                    min_y = MatyasFunction.min_y;
-                    max_y = MatyasFunction.max_y;
-                    global_min_positions = MatyasFunction.global_min_positions;
-                    global_min_value = MatyasFunction.global_min_value;
-                    calculateValueHandler = MatyasFunction.CalculateValue;
-                    break;
-                case TestFunction.Levi_N13:
-                    min_x = LeviN13Function.min_x;
-                    max_x = LeviN13Function.max_x;
-                    min_y = LeviN13Function.min_y;
-                    max_y = LeviN13Function.max_y;
-                    global_min_positions = LeviN13Function.global_min_positions;
-                    global_min_value = LeviN13Function.global_min_value;
-                    calculateValueHandler = LeviN13Function.CalculateValue;
-                    break;
-                case TestFunction.Griewank:
-                    min_x = GriewankFunction.min_x;
-                    max_x = GriewankFunction.max_x;
-                    min_y = GriewankFunction.min_y;
-                    max_y = GriewankFunction.max_y;
-                    global_min_positions = GriewankFunction.global_min_positions;
-                    global_min_value = GriewankFunction.global_min_value;
-                    calculateValueHandler = GriewankFunction.CalculateValue;
-                    break;
-                case TestFunction.Himmerblaus:
-                    min_x = HimmelblausFunction.min_x;
-                    max_x = HimmelblausFunction.max_x;
-                    min_y = HimmelblausFunction.min_y;
-                    max_y = HimmelblausFunction.max_y;
-                    global_min_positions = HimmelblausFunction.global_min_positions;
-                    global_min_value = HimmelblausFunction.global_min_value;
-                    calculateValueHandler = HimmelblausFunction.CalculateValue;
-                    break;
-                case TestFunction.Three_Hump_Camel:
-                    min_x = ThreeHumpCamelFunction.min_x;
-                    max_x = ThreeHumpCamelFunction.max_x;
-                    min_y = ThreeHumpCamelFunction.min_y;
-                    max_y = ThreeHumpCamelFunction.max_y;
-                    global_min_positions = ThreeHumpCamelFunction.global_min_positions;
-                    global_min_value = ThreeHumpCamelFunction.global_min_value;
-                    calculateValueHandler = ThreeHumpCamelFunction.CalculateValue;
-                    break;
-                case TestFunction.Easom:
-                    min_x = EasomFunction.min_x;
-                    max_x = EasomFunction.max_x;
-                    min_y = EasomFunction.min_y;
-                    max_y = EasomFunction.max_y;
-                    global_min_positions = EasomFunction.global_min_positions;
-                    global_min_value = EasomFunction.global_min_value;
-                    calculateValueHandler = EasomFunction.CalculateValue;
-                    break;
-                case TestFunction.Cross_In_Tray:
-                    min_x = CrossInTrayFunction.min_x;
-                    max_x = CrossInTrayFunction.max_x;
-                    min_y = CrossInTrayFunction.min_y;
-                    max_y = CrossInTrayFunction.max_y;
-                    global_min_positions = CrossInTrayFunction.global_min_positions;
-                    global_min_value = CrossInTrayFunction.global_min_value;
-                    calculateValueHandler = CrossInTrayFunction.CalculateValue;
-                    break;
-                case TestFunction.Eggholder:
-                    min_x = EggholderFunction.min_x;
-                    max_x = EggholderFunction.max_x;
-                    min_y = EggholderFunction.min_y;
-                    max_y = EggholderFunction.max_y;
-                    global_min_positions = EggholderFunction.global_min_positions;
-                    global_min_value = EggholderFunction.global_min_value;
-                    calculateValueHandler = EggholderFunction.CalculateValue;
-                    break;
-                case TestFunction.Holder_Table:
-                    min_x = HolderTableFunction.min_x;
-                    max_x = HolderTableFunction.max_x;
-                    min_y = HolderTableFunction.min_y;
-                    max_y = HolderTableFunction.max_y;
-                    global_min_positions = HolderTableFunction.global_min_positions;
-                    global_min_value = HolderTableFunction.global_min_value;
-                    calculateValueHandler = HolderTableFunction.CalculateValue;
-                    break;
-                case TestFunction.McCormick:
-                    min_x = McCormickFunction.min_x;
-                    max_x = McCormickFunction.max_x;
-                    min_y = McCormickFunction.min_y;
-                    max_y = McCormickFunction.max_y;
-                    global_min_positions = McCormickFunction.global_min_positions;
-                    global_min_value = McCormickFunction.global_min_value;
-                    calculateValueHandler = McCormickFunction.CalculateValue;
-                    break;
-                case TestFunction.Schaffer_N2:
-                    min_x = SchafferN2Function.min_x;
-                    max_x = SchafferN2Function.max_x;
-                    min_y = SchafferN2Function.min_y;
-                    max_y = SchafferN2Function.max_y;
-                    global_min_positions = SchafferN2Function.global_min_positions;
-                    global_min_value = SchafferN2Function.global_min_value;
-                    calculateValueHandler = SchafferN2Function.CalculateValue;
-                    break;
-                case TestFunction.Schaffer_N4:
-                    min_x = SchafferN4Function.min_x;
-                    max_x = SchafferN4Function.max_x;
-                    min_y = SchafferN4Function.min_y;
-                    max_y = SchafferN4Function.max_y;
-                    global_min_positions = SchafferN4Function.global_min_positions;
-                    global_min_value = SchafferN4Function.global_min_value;
-                    calculateValueHandler = SchafferN4Function.CalculateValue;
-                    break;
-            }
-        }
-
-        private void InitiatePopulation()
-        {
-            weedPopulation = new Weed[populationSize];
-
-            Random rng = new Random();
-            int i = 0;
-
-            float width = max_x - min_x;
-            float height = max_y - min_y;
-            float center_x = min_x + width / 2;
-            float center_y = min_y + height / 2;
-
-            switch (arrangement)
-            {
-                case StartPopulationArrangement.Random:
-                    for (i = 0; i < populationSize; i++)
-                    {
-                        float x = (float)rng.NextDouble() * width + min_x;
-                        float y = (float)rng.NextDouble() * height + min_y;
-
-                        weedPopulation[i].position = new Vector2(x, y);
-                        weedPopulation[i].value = calculateValueHandler(x, y);
-                    }
-                    break;
-                case StartPopulationArrangement.Center:
-                    for (i = 0; i < populationSize; i++)
-                    {
-                        float x = center_x + (float)rng.NextDouble() * (width / 4) - (width / 8);
-                        float y = center_y + (float)rng.NextDouble() * (height / 4) - (height / 8);
-
-                        weedPopulation[i].position = new Vector2(x, y);
-                        weedPopulation[i].value = calculateValueHandler(x, y);
-                    }
-                    break;
-                case StartPopulationArrangement.Borders:
-                    for (i = 0; i < populationSize; i++)
-                    {
-                        float x = (float)rng.NextDouble() * (width / 4);
-                        float y = (float)rng.NextDouble() * (height / 4);
-
-                        x = x < width / 8 ? min_x + x : x = max_x - x + width / 8;
-                        y = y < height / 8 ? min_y + y : y = max_y - y + height / 8;
-
-                        weedPopulation[i].position = new Vector2(x, y);
-                        weedPopulation[i].value = calculateValueHandler(x, y);
-                    }
-                    break;
-                case StartPopulationArrangement.Grid:
-                    int side_count = (int)Math.Sqrt(populationSize);
-                    int all_count = side_count * side_count;
-                    float gap_horizontal = width / (side_count + 1);
-                    float gap_vertical = height / (side_count + 1);
-
-                    i = 0;
-                    int ix = 0, iy = 0;
-
-                    while (i < all_count)
-                    {
-                        if (ix == side_count)
-                        {
-                            ix = 0;
-                            iy++;
-                        }
-
-                        float x = gap_horizontal * (ix + 1);
-                        float y = gap_vertical * (iy + 1);
-
-                        weedPopulation[i].position = new Vector2(x, y);
-                        weedPopulation[i].value = calculateValueHandler(x, y);
-
-                        ix++;
-                        i++;
-                    }
-                    while (i < populationSize)
-                    {
-                        float x = (float)rng.NextDouble() * width + min_x;
-                        float y = (float)rng.NextDouble() * height + min_y;
-
-                        weedPopulation[i].position = new Vector2(x, y);
-                        weedPopulation[i].value = calculateValueHandler(x, y);
-                    }
-                    break;
-            }
-        }
-
         private void AddErrorMessage(string message)
         {
             listB_errorMessages.BeginUpdate();
@@ -375,10 +355,90 @@ namespace IWO
             listB_errorMessages.Items.Clear();
         }
 
-        class Weed
+        private void SimulationStep()
         {
-            public Vector2 position;
-            public double value;
+            Random rng = new();
+            List<Weed> newOffspring = [];
+
+            foreach (Weed weed in currentWeedPopulation)
+            {
+                int seeds = CalculateAmountOfSeeds(weed);
+                float currentSigma = CalculateCurrentSigma(); // sigma is to make new offspring appear closer to parents as time goes on
+                float currentMaxDistance = initialOffspringMaxDistance * currentSigma;
+                Debug.WriteLine($"{currentSigma} {currentMaxDistance}");
+
+                for (int i = 0; i < seeds; i++)
+                {
+                    // Places offspring in circle around parent
+                    float shiftX = (rng.NextSingle() * 2 - 1) * currentMaxDistance;
+                    float shiftY = (rng.NextSingle() * 2 - 1) * MathF.Sqrt(MathF.Pow(currentMaxDistance, 2) - shiftX * shiftX);
+
+                    // Here to make sure we don't go outside the function's space
+                    shiftX = Math.Min(Math.Max(weed.position.X + shiftX, testFunction.MinX), testFunction.MaxX);
+                    shiftY = Math.Min(Math.Max(weed.position.Y + shiftY, testFunction.MinY), testFunction.MaxY);
+
+                    Weed newWeed = new();
+                    newWeed.position = new(shiftX, shiftY);
+                    newWeed.fitness = testFunction.calculateValueHandler(shiftX, shiftY);
+
+                    newOffspring.Add(newWeed);
+                }
+            }
+
+            currentWeedPopulation.AddRange(newOffspring);
+            currentWeedPopulation.Sort();
+            best_fitness = currentWeedPopulation[0].fitness;
+            worst_fitness = currentWeedPopulation[currentWeedPopulation.Count - 1].fitness;
+
+            CutPopulation();
+        }
+
+        private int CalculateAmountOfSeeds(Weed weed)
+        {
+            return (int)((seedMax * (worst_fitness - weed.fitness) + seedMin * (weed.fitness - best_fitness)) / (worst_fitness - best_fitness));
+        }
+
+        private float CalculateCurrentSigma()
+        {
+            return MathF.Pow(((maxGenerationId - currentGenerationId) / (float)maxGenerationId), n) * (sigmaInit - sigmaFinal) + sigmaFinal;
+        }
+
+        private void CutPopulation()
+        {
+            int amountToCut = currentWeedPopulation.Count - maxPopulationSize;
+            int x = currentWeedPopulation.Count - 1;
+
+            for (int i = 0; i < amountToCut; i++)
+            {
+                currentWeedPopulation.RemoveAt(x - i);
+            }
+        }
+
+
+
+        private void ClearPopulationDisplay()
+        {
+            populationGraphics.Clear(Color.White);
+            //foreach (Weed weed in currentWeedPopulation)
+            //{
+            //    int ellipseStartX = (int)((weed.position.X - testFunction.MinX) * positionOnScreenModifier.X) - 1;
+            //    int ellipseStartY = (int)((weed.position.Y - testFunction.MinY) * positionOnScreenModifier.Y) - 1;
+
+            //    populationGraphics.DrawEllipse(populationEraser, ellipseStartX, ellipseStartY, 2, 2);
+            //}
+        }
+
+        private void UpdatePopulationDisplay()
+        {
+            foreach (Weed weed in currentWeedPopulation)
+            {
+                int ellipseStartX = (int)((weed.position.X - testFunction.MinX) * positionOnScreenModifier.X) - 1;
+                int ellipseStartY = (int)((weed.position.Y - testFunction.MinY) * positionOnScreenModifier.Y) - 1;
+
+                populationGraphics.DrawEllipse(populationPen, ellipseStartX, ellipseStartY, 2, 2);
+            }
+
+            picB_populationSpace.Refresh();
         }
     }
 }

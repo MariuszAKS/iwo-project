@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IWO
 {
-    enum TestFunction
+    public enum TestFunctionEnum
     {
         Rastrigin,
         Ackley,
@@ -28,6 +28,227 @@ namespace IWO
         McCormick,
         Schaffer_N2,
         Schaffer_N4
+    }
+
+    public delegate double CalculateValue(float x, float y);
+
+    public class TestFunction
+    {
+        public TestFunctionEnum Function;
+        public string Name = RastriginFunction.name;
+        public float MinX, MaxX, MinY, MaxY;
+        public float Height, Width;
+        public Vector2[] GlobalMinPositions = [];
+        public double GlobalMinValue;
+
+        public CalculateValue? calculateValueHandler;
+
+        public TestFunction()
+        {
+            ChangeTestFunction(TestFunctionEnum.Rastrigin);
+        }
+
+        public void ChangeTestFunction(TestFunctionEnum function)
+        {
+            Function = function;
+
+            switch (function)
+            {
+                case TestFunctionEnum.Rastrigin:
+                    Name = RastriginFunction.name;
+                    MinX = RastriginFunction.min_x;
+                    MaxX = RastriginFunction.max_x;
+                    MinY = RastriginFunction.min_y;
+                    MaxY = RastriginFunction.max_y;
+                    GlobalMinPositions = RastriginFunction.global_min_positions;
+                    GlobalMinValue = RastriginFunction.global_min_value;
+                    calculateValueHandler = RastriginFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Ackley:
+                    Name = AckleyFunction.name;
+                    MinX = AckleyFunction.min_x;
+                    MaxX = AckleyFunction.max_x;
+                    MinY = AckleyFunction.min_y;
+                    MaxY = AckleyFunction.max_y;
+                    GlobalMinPositions = AckleyFunction.global_min_positions;
+                    GlobalMinValue = AckleyFunction.global_min_value;
+                    calculateValueHandler = AckleyFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Sphere:
+                    Name = SphereFunction.name;
+                    MinX = SphereFunction.min_x;
+                    MaxX = SphereFunction.max_x;
+                    MinY = SphereFunction.min_y;
+                    MaxY = SphereFunction.max_y;
+                    GlobalMinPositions = SphereFunction.global_min_positions;
+                    GlobalMinValue = SphereFunction.global_min_value;
+                    calculateValueHandler = SphereFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Rosenbrock:
+                    Name = RosenbrockFunction.name;
+                    MinX = RosenbrockFunction.min_x;
+                    MaxX = RosenbrockFunction.max_x;
+                    MinY = RosenbrockFunction.min_y;
+                    MaxY = RosenbrockFunction.max_y;
+                    GlobalMinPositions = RosenbrockFunction.global_min_positions;
+                    GlobalMinValue = RosenbrockFunction.global_min_value;
+                    calculateValueHandler = RosenbrockFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Beale:
+                    Name = BealeFunction.name;
+                    MinX = BealeFunction.min_x;
+                    MaxX = BealeFunction.max_x;
+                    MinY = BealeFunction.min_y;
+                    MaxY = BealeFunction.max_y;
+                    GlobalMinPositions = BealeFunction.global_min_positions;
+                    GlobalMinValue = BealeFunction.global_min_value;
+                    calculateValueHandler = BealeFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Goldstein_Price:
+                    Name = GoldsteinPriceFunction.name;
+                    MinX = GoldsteinPriceFunction.min_x;
+                    MaxX = GoldsteinPriceFunction.max_x;
+                    MinY = GoldsteinPriceFunction.min_y;
+                    MaxY = GoldsteinPriceFunction.max_y;
+                    GlobalMinPositions = GoldsteinPriceFunction.global_min_positions;
+                    GlobalMinValue = GoldsteinPriceFunction.global_min_value;
+                    calculateValueHandler = GoldsteinPriceFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Bukin_N6:
+                    Name = BukinN6Function.name;
+                    MinX = BukinN6Function.min_x;
+                    MaxX = BukinN6Function.max_x;
+                    MinY = BukinN6Function.min_y;
+                    MaxY = BukinN6Function.max_y;
+                    GlobalMinPositions = BukinN6Function.global_min_positions;
+                    GlobalMinValue = BukinN6Function.global_min_value;
+                    calculateValueHandler = BukinN6Function.CalculateValue;
+                    break;
+                case TestFunctionEnum.Matyas:
+                    Name = MatyasFunction.name;
+                    MinX = MatyasFunction.min_x;
+                    MaxX = MatyasFunction.max_x;
+                    MinY = MatyasFunction.min_y;
+                    MaxY = MatyasFunction.max_y;
+                    GlobalMinPositions = MatyasFunction.global_min_positions;
+                    GlobalMinValue = MatyasFunction.global_min_value;
+                    calculateValueHandler = MatyasFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Levi_N13:
+                    Name = LeviN13Function.name;
+                    MinX = LeviN13Function.min_x;
+                    MaxX = LeviN13Function.max_x;
+                    MinY = LeviN13Function.min_y;
+                    MaxY = LeviN13Function.max_y;
+                    GlobalMinPositions = LeviN13Function.global_min_positions;
+                    GlobalMinValue = LeviN13Function.global_min_value;
+                    calculateValueHandler = LeviN13Function.CalculateValue;
+                    break;
+                case TestFunctionEnum.Griewank:
+                    Name = GriewankFunction.name;
+                    MinX = GriewankFunction.min_x;
+                    MaxX = GriewankFunction.max_x;
+                    MinY = GriewankFunction.min_y;
+                    MaxY = GriewankFunction.max_y;
+                    GlobalMinPositions = GriewankFunction.global_min_positions;
+                    GlobalMinValue = GriewankFunction.global_min_value;
+                    calculateValueHandler = GriewankFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Himmerblaus:
+                    Name = HimmelblausFunction.name;
+                    MinX = HimmelblausFunction.min_x;
+                    MaxX = HimmelblausFunction.max_x;
+                    MinY = HimmelblausFunction.min_y;
+                    MaxY = HimmelblausFunction.max_y;
+                    GlobalMinPositions = HimmelblausFunction.global_min_positions;
+                    GlobalMinValue = HimmelblausFunction.global_min_value;
+                    calculateValueHandler = HimmelblausFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Three_Hump_Camel:
+                    Name = ThreeHumpCamelFunction.name;
+                    MinX = ThreeHumpCamelFunction.min_x;
+                    MaxX = ThreeHumpCamelFunction.max_x;
+                    MinY = ThreeHumpCamelFunction.min_y;
+                    MaxY = ThreeHumpCamelFunction.max_y;
+                    GlobalMinPositions = ThreeHumpCamelFunction.global_min_positions;
+                    GlobalMinValue = ThreeHumpCamelFunction.global_min_value;
+                    calculateValueHandler = ThreeHumpCamelFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Easom:
+                    Name = EasomFunction.name;
+                    MinX = EasomFunction.min_x;
+                    MaxX = EasomFunction.max_x;
+                    MinY = EasomFunction.min_y;
+                    MaxY = EasomFunction.max_y;
+                    GlobalMinPositions = EasomFunction.global_min_positions;
+                    GlobalMinValue = EasomFunction.global_min_value;
+                    calculateValueHandler = EasomFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Cross_In_Tray:
+                    Name = CrossInTrayFunction.name;
+                    MinX = CrossInTrayFunction.min_x;
+                    MaxX = CrossInTrayFunction.max_x;
+                    MinY = CrossInTrayFunction.min_y;
+                    MaxY = CrossInTrayFunction.max_y;
+                    GlobalMinPositions = CrossInTrayFunction.global_min_positions;
+                    GlobalMinValue = CrossInTrayFunction.global_min_value;
+                    calculateValueHandler = CrossInTrayFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Eggholder:
+                    Name = EggholderFunction.name;
+                    MinX = EggholderFunction.min_x;
+                    MaxX = EggholderFunction.max_x;
+                    MinY = EggholderFunction.min_y;
+                    MaxY = EggholderFunction.max_y;
+                    GlobalMinPositions = EggholderFunction.global_min_positions;
+                    GlobalMinValue = EggholderFunction.global_min_value;
+                    calculateValueHandler = EggholderFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Holder_Table:
+                    Name = HolderTableFunction.name;
+                    MinX = HolderTableFunction.min_x;
+                    MaxX = HolderTableFunction.max_x;
+                    MinY = HolderTableFunction.min_y;
+                    MaxY = HolderTableFunction.max_y;
+                    GlobalMinPositions = HolderTableFunction.global_min_positions;
+                    GlobalMinValue = HolderTableFunction.global_min_value;
+                    calculateValueHandler = HolderTableFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.McCormick:
+                    Name = McCormickFunction.name;
+                    MinX = McCormickFunction.min_x;
+                    MaxX = McCormickFunction.max_x;
+                    MinY = McCormickFunction.min_y;
+                    MaxY = McCormickFunction.max_y;
+                    GlobalMinPositions = McCormickFunction.global_min_positions;
+                    GlobalMinValue = McCormickFunction.global_min_value;
+                    calculateValueHandler = McCormickFunction.CalculateValue;
+                    break;
+                case TestFunctionEnum.Schaffer_N2:
+                    Name = SchafferN2Function.name;
+                    MinX = SchafferN2Function.min_x;
+                    MaxX = SchafferN2Function.max_x;
+                    MinY = SchafferN2Function.min_y;
+                    MaxY = SchafferN2Function.max_y;
+                    GlobalMinPositions = SchafferN2Function.global_min_positions;
+                    GlobalMinValue = SchafferN2Function.global_min_value;
+                    calculateValueHandler = SchafferN2Function.CalculateValue;
+                    break;
+                case TestFunctionEnum.Schaffer_N4:
+                    Name = SchafferN4Function.name;
+                    MinX = SchafferN4Function.min_x;
+                    MaxX = SchafferN4Function.max_x;
+                    MinY = SchafferN4Function.min_y;
+                    MaxY = SchafferN4Function.max_y;
+                    GlobalMinPositions = SchafferN4Function.global_min_positions;
+                    GlobalMinValue = SchafferN4Function.global_min_value;
+                    calculateValueHandler = SchafferN4Function.CalculateValue;
+                    break;
+            }
+
+            Height = MaxY - MinY;
+            Width = MaxX - MinX;
+        }
     }
 
     static class RastriginFunction

@@ -149,6 +149,7 @@ namespace IWO
         private void numUD_generationsCount_ValueChanged(object sender, EventArgs e)
         {
             maxGenerationId = (int)numUD_generationsCount.Value;
+            txtB_simulationProgress.Text = $"0/{maxGenerationId}";
         }
 
         private void numUD_seedMin_ValueChanged(object sender, EventArgs e)
@@ -341,7 +342,14 @@ namespace IWO
         {
             if (simulationOngoing && currentGenerationId < maxGenerationId)
             {
-                SimulationStep();
+                if (simulationTimer.Enabled)
+                {
+                    simulationTimer.Stop();
+                }
+                else
+                {
+                    SimulationStep();
+                }
             }
         }
 
@@ -391,6 +399,7 @@ namespace IWO
         private void SimulationStep()
         {
             currentGenerationId++;
+            txtB_simulationProgress.Text = $"{currentGenerationId}/{maxGenerationId}";
 
             Random rng = new();
             List<Weed> newOffspring = [];

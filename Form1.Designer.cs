@@ -54,6 +54,7 @@
             numUD_seedMin = new NumericUpDown();
             numUD_seedMax = new NumericUpDown();
             btn_step = new Button();
+            txtB_simulationProgress = new TextBox();
             ((System.ComponentModel.ISupportInitialize)numUD_initialPopulationSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numUD_maxPopulationSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numUD_generationsCount).BeginInit();
@@ -87,9 +88,9 @@
             // 
             btn_StartSimulation.Location = new Point(552, 718);
             btn_StartSimulation.Name = "btn_StartSimulation";
-            btn_StartSimulation.Size = new Size(145, 31);
+            btn_StartSimulation.Size = new Size(105, 31);
             btn_StartSimulation.TabIndex = 2;
-            btn_StartSimulation.Text = "Start";
+            btn_StartSimulation.Text = "Start/Pause";
             btn_StartSimulation.UseVisualStyleBackColor = true;
             btn_StartSimulation.Click += btn_StartSimulation_Click;
             // 
@@ -297,19 +298,30 @@
             // 
             // btn_step
             // 
-            btn_step.Location = new Point(703, 718);
+            btn_step.Location = new Point(663, 718);
             btn_step.Name = "btn_step";
-            btn_step.Size = new Size(145, 31);
+            btn_step.Size = new Size(105, 31);
             btn_step.TabIndex = 27;
-            btn_step.Text = "Krok";
+            btn_step.Text = "Simulation Step";
             btn_step.UseVisualStyleBackColor = true;
             btn_step.Click += btn_step_Click;
+            // 
+            // txtB_simulationProgress
+            // 
+            txtB_simulationProgress.Location = new Point(774, 723);
+            txtB_simulationProgress.Name = "txtB_simulationProgress";
+            txtB_simulationProgress.ReadOnly = true;
+            txtB_simulationProgress.Size = new Size(74, 23);
+            txtB_simulationProgress.TabIndex = 29;
+            txtB_simulationProgress.Text = "99/100";
+            txtB_simulationProgress.TextAlign = HorizontalAlignment.Right;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1264, 761);
+            Controls.Add(txtB_simulationProgress);
             Controls.Add(btn_step);
             Controls.Add(numUD_seedMax);
             Controls.Add(numUD_seedMin);
@@ -377,5 +389,6 @@
         private NumericUpDown numUD_seedMin;
         private NumericUpDown numUD_seedMax;
         private Button btn_step;
+        private TextBox txtB_simulationProgress;
     }
 }

@@ -24,7 +24,7 @@ namespace IWO
         Three_Hump_Camel,
         Easom,
         Cross_In_Tray,
-        Eggholder,
+        //Eggholder,
         Holder_Table,
         McCormick,
         Schaffer_N2,
@@ -115,6 +115,16 @@ namespace IWO
                     GlobalMinValue = GoldsteinPriceFunction.global_min_value;
                     calculateValueHandler = GoldsteinPriceFunction.CalculateValue;
                     break;
+                case TestFunctionEnum.Booth:
+                    Name = BoothFunction.name;
+                    MinX = BoothFunction.min_x;
+                    MaxX = BoothFunction.max_x;
+                    MinY = BoothFunction.min_y;
+                    MaxY = BoothFunction.max_y;
+                    GlobalMinPositions = BoothFunction.global_min_positions;
+                    GlobalMinValue = BoothFunction.global_min_value;
+                    calculateValueHandler = BoothFunction.CalculateValue;
+                    break;
                 case TestFunctionEnum.Bukin_N6:
                     Name = BukinN6Function.name;
                     MinX = BukinN6Function.min_x;
@@ -195,16 +205,16 @@ namespace IWO
                     GlobalMinValue = CrossInTrayFunction.global_min_value;
                     calculateValueHandler = CrossInTrayFunction.CalculateValue;
                     break;
-                case TestFunctionEnum.Eggholder:
-                    Name = EggholderFunction.name;
-                    MinX = EggholderFunction.min_x;
-                    MaxX = EggholderFunction.max_x;
-                    MinY = EggholderFunction.min_y;
-                    MaxY = EggholderFunction.max_y;
-                    GlobalMinPositions = EggholderFunction.global_min_positions;
-                    GlobalMinValue = EggholderFunction.global_min_value;
-                    calculateValueHandler = EggholderFunction.CalculateValue;
-                    break;
+                //case TestFunctionEnum.Eggholder:
+                //    Name = EggholderFunction.name;
+                //    MinX = EggholderFunction.min_x;
+                //    MaxX = EggholderFunction.max_x;
+                //    MinY = EggholderFunction.min_y;
+                //    MaxY = EggholderFunction.max_y;
+                //    GlobalMinPositions = EggholderFunction.global_min_positions;
+                //    GlobalMinValue = EggholderFunction.global_min_value;
+                //    calculateValueHandler = EggholderFunction.CalculateValue;
+                //    break;
                 case TestFunctionEnum.Holder_Table:
                     Name = HolderTableFunction.name;
                     MinX = HolderTableFunction.min_x;
@@ -348,7 +358,7 @@ namespace IWO
     {
         public static readonly string name = "Goldstein-Price function";
         public const float min_x = -2, max_x = 2;
-        public const float min_y = -2, max_y = 2;
+        public const float min_y = -3, max_y = 1;
 
         public static readonly Vector2[] global_min_positions = [new(0, -1)];
         public static readonly double global_min_value = 3;
@@ -382,8 +392,8 @@ namespace IWO
     static class BukinN6Function
     {
         public static readonly string name = "Bukin function N.6";
-        public const float min_x = -15, max_x = -5;
-        public const float min_y = -3, max_y = 3;
+        public const float min_x = -15.2f, max_x = -6.8f;
+        public const float min_y = -4, max_y = 6.3f;
 
         public static readonly Vector2[] global_min_positions = [new(-10, 1)];
         public static readonly double global_min_value = 0;
@@ -414,8 +424,8 @@ namespace IWO
     static class LeviN13Function
     {
         public static readonly string name = "Levi function N.13";
-        public const float min_x = -10, max_x = 10;
-        public const float min_y = -10, max_y = 10;
+        public const float min_x = -5, max_x = 7;
+        public const float min_y = -5, max_y = 7;
 
         public static readonly Vector2[] global_min_positions = [new(1, 1)];
         public static readonly double global_min_value = 0;
@@ -434,8 +444,8 @@ namespace IWO
     static class GriewankFunction
     {
         public static readonly string name = "Griewank function";
-        public const float min_x = -1000, max_x = 1000;
-        public const float min_y = -1000, max_y = 1000;
+        public const float min_x = -10, max_x = 10;
+        public const float min_y = -10, max_y = 10;
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
@@ -482,8 +492,8 @@ namespace IWO
     static class EasomFunction
     {
         public static readonly string name = "Easom function";
-        public const float min_x = -100, max_x = 100;
-        public const float min_y = -100, max_y = 100;
+        public const float min_x = -1, max_x = 7;
+        public const float min_y = -1, max_y = 7;
 
         public static readonly Vector2[] global_min_positions = [new(MathF.PI, MathF.PI)];
         public static readonly double global_min_value = -1;
@@ -514,8 +524,8 @@ namespace IWO
     static class EggholderFunction
     {
         public static readonly string name = "Eggholder function";
-        public const float min_x = -512, max_x = 512;
-        public const float min_y = -512, max_y = 512;
+        public const float min_x = -1000, max_x = 1000;
+        public const float min_y = -1000, max_y = 1000;
 
         public static readonly Vector2[] global_min_positions = [new(512, 404.2319f)];
         public static readonly double global_min_value = -959.6407;
@@ -546,7 +556,7 @@ namespace IWO
     static class McCormickFunction
     {
         public static readonly string name = "McCormick function";
-        public const float min_x = -1.5f, max_x = 4;
+        public const float min_x = -3, max_x = 4;
         public const float min_y = -3, max_y = 4;
 
         public static readonly Vector2[] global_min_positions = [new(-0.54719f, -1.54719f)];
@@ -562,8 +572,8 @@ namespace IWO
     static class SchafferN2Function
     {
         public static readonly string name = "Schaffer function N.2";
-        public const float min_x = -100, max_x = 100;
-        public const float min_y = -100, max_y = 100;
+        public const float min_x = -50, max_x = 50;
+        public const float min_y = -50, max_y = 50;
 
         public static readonly Vector2[] global_min_positions = [new(0, 0)];
         public static readonly double global_min_value = 0;
@@ -578,8 +588,8 @@ namespace IWO
     static class SchafferN4Function
     {
         public static readonly string name = "Schaffer function N.4";
-        public const float min_x = -100, max_x = 100;
-        public const float min_y = -100, max_y = 100;
+        public const float min_x = -50, max_x = 50;
+        public const float min_y = -50, max_y = 50;
 
         public static readonly Vector2[] global_min_positions = [new(0, 1.25313f), new(0, -1.25313f), new(1.25313f, 0), new(-1.25313f, 0)];
         public static readonly double global_min_value = 0.292579;

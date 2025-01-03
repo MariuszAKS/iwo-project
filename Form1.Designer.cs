@@ -71,7 +71,7 @@
             numUD_initialPopulationSize.Name = "numUD_initialPopulationSize";
             numUD_initialPopulationSize.Size = new Size(120, 23);
             numUD_initialPopulationSize.TabIndex = 0;
-            numUD_initialPopulationSize.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            numUD_initialPopulationSize.Value = new decimal(new int[] { 100, 0, 0, 0 });
             numUD_initialPopulationSize.ValueChanged += numUD_initialPopulationSize_ValueChanged;
             // 
             // numUD_maxPopulationSize

@@ -467,10 +467,10 @@ namespace IWO
 
             foreach (Weed weed in currentWeedPopulation)
             {
-                int rectangleStartX = (int)((weed.position.X - testFunction.MinX) * positionOnScreenModifier.X) - 1;
-                int rectangleStartY = (int)((weed.position.Y - testFunction.MinY) * positionOnScreenModifier.Y) - 1;
+                int rectangleStartX = (int)((weed.position.X - testFunction.MinX) * positionOnScreenModifier.X);
+                int rectangleStartY = (int)((weed.position.Y - testFunction.MinY) * positionOnScreenModifier.Y);
 
-                populationGraphics.DrawRectangle(populationPen, rectangleStartX, rectangleStartY, 2, 2);
+                populationGraphics.DrawRectangle(populationPen, rectangleStartX - 1, picB_populationSpace.Height - rectangleStartY, 2, 2);
             }
 
             CombineLayers();

@@ -35,9 +35,10 @@ namespace IWO
         private TestFunction testFunction = new();
         private List<Weed> currentWeedPopulation = [];
 
-        private double best_fitness, worst_fitness;
+        private double best_fitness, worst_fitness, worst_best_difference;
 
         private Timer simulationTimer = new();
+        private bool simulationOngoing = false;
 
         // Variables for calculating new weed's position
         private int n = 2; // here to decide how fast sigma tends to 0 (higher = faster, 1 = linear, n<1 = faster near end, n>1 = slower near end, n=0 doesn't change, n<0 = goes to infinity)
@@ -54,7 +55,11 @@ namespace IWO
 
         private Bitmap fitnessBitmap;
         private Graphics fitnessGraphics;
+        private Pen bestFitnessPen;
+        private Pen worstFitnessPen;
         private Pen fitnessPen;
+        private Color bestFitnessColor = Color.LightGreen;
+        private Color worstFitnessColor = Color.Red;
         private Color fitnessColor = Color.Black;
 
 
@@ -77,6 +82,14 @@ namespace IWO
 
             positionOnScreenModifier.Y = picB_populationSpace.Height / (testFunction.Height);
             positionOnScreenModifier.X = picB_populationSpace.Width / (testFunction.Width);
+
+            fitnessBitmap = new Bitmap(picB_bestFitnessChart.Width, picB_bestFitnessChart.Height);
+            fitnessGraphics = Graphics.FromImage(fitnessBitmap);
+            bestFitnessPen = new Pen(bestFitnessColor, 2);
+            worstFitnessPen = new Pen(worstFitnessColor, 2);
+            fitnessPen = new Pen(fitnessColor, 2);
+
+            picB_bestFitnessChart.Image = fitnessBitmap;
         }
 
         private void GetInitialValuesFromUI() // It's here to update values in code by values set up in editor (before running the app)
@@ -110,19 +123,17 @@ namespace IWO
             {
                 if (currentGenerationId < maxGenerationId)
                 {
-                    currentGenerationId++;
-
                     SimulationStep();
-                    UpdatePopulationDisplay();
                 }
                 else
                 {
                     simulationTimer.Stop();
+                    simulationOngoing = false;
                 }
             };
         }
 
-        
+
 
         private void numUD_initialPopulationSize_ValueChanged(object sender, EventArgs e)
         {
@@ -201,7 +212,7 @@ namespace IWO
 
         private void InitiatePopulation()
         {
-            //ClearPopulationDisplay();
+            simulationOngoing = false;
             currentWeedPopulation.Clear();
 
             Random rng = new();
@@ -294,6 +305,7 @@ namespace IWO
                 currentWeedPopulation.Sort();
                 best_fitness = currentWeedPopulation[0].fitness;
                 worst_fitness = currentWeedPopulation[initialPopulationSize - 1].fitness;
+                worst_best_difference = worst_fitness - testFunction.GlobalMinValue;
             }
 
             UpdatePopulationDisplay();
@@ -307,9 +319,29 @@ namespace IWO
 
             if (CheckStartingConditions())
             {
-                currentGenerationId = 0;
+                if (!simulationOngoing)
+                {
+                    currentGenerationId = 0;
+                    fitnessGraphics.Clear(Color.White);
+                }
 
-                simulationTimer.Start();
+                if (simulationTimer.Enabled)
+                {
+                    simulationTimer.Stop();
+                }
+                else
+                {
+                    simulationTimer.Start();
+                    simulationOngoing = true;
+                }
+            }
+        }
+
+        private void btn_step_Click(object sender, EventArgs e)
+        {
+            if (simulationOngoing && currentGenerationId < maxGenerationId)
+            {
+                SimulationStep();
             }
         }
 
@@ -358,6 +390,8 @@ namespace IWO
 
         private void SimulationStep()
         {
+            currentGenerationId++;
+
             Random rng = new();
             List<Weed> newOffspring = [];
 
@@ -387,10 +421,13 @@ namespace IWO
 
             currentWeedPopulation.AddRange(newOffspring);
             currentWeedPopulation.Sort();
+            CutPopulation();
+
             best_fitness = currentWeedPopulation[0].fitness;
             worst_fitness = currentWeedPopulation[currentWeedPopulation.Count - 1].fitness;
 
-            CutPopulation();
+            UpdatePopulationDisplay();
+            UpdateFitnessDisplay();
         }
 
         private int CalculateAmountOfSeeds(Weed weed)
@@ -437,9 +474,26 @@ namespace IWO
 
             combinedGraphics.DrawImage(testFunction.GetImage(), 0, 0, combinedBitmap.Width, combinedBitmap.Height);
             combinedGraphics.DrawImage(populationBitmap, 0, 0);
-            
+
             picB_populationSpace.Image?.Dispose();
             picB_populationSpace.Image = combinedBitmap;
+        }
+
+        private void UpdateFitnessDisplay()
+        {
+            int x = (int)(picB_bestFitnessChart.Width / (float)maxGenerationId * (currentGenerationId - 0.5));
+            int best_y = picB_bestFitnessChart.Height - 2 - (int)((best_fitness - testFunction.GlobalMinValue) / (worst_best_difference * 1.1) * picB_bestFitnessChart.Height);
+            int worst_y = picB_bestFitnessChart.Height - 2 - (int)((worst_fitness - testFunction.GlobalMinValue) / (worst_best_difference * 1.1) * picB_bestFitnessChart.Height);
+
+            foreach (Weed weed in currentWeedPopulation)
+            {
+                int weed_y = picB_bestFitnessChart.Height - 2 - (int)((weed.fitness - testFunction.GlobalMinValue) / (worst_best_difference * 1.1) * picB_bestFitnessChart.Height);
+                fitnessGraphics.DrawRectangle(fitnessPen, x, weed_y, 1, 1);
+            }
+
+            fitnessGraphics.DrawRectangle(worstFitnessPen, x, worst_y, 1, 1);
+            fitnessGraphics.DrawRectangle(bestFitnessPen, x, best_y, 1, 1);
+            picB_bestFitnessChart.Refresh();
         }
     }
 }

@@ -31,7 +31,6 @@
             numUD_initialPopulationSize = new NumericUpDown();
             numUD_maxPopulationSize = new NumericUpDown();
             btn_StartSimulation = new Button();
-            chkB_stepVisualization = new CheckBox();
             numUD_generationsCount = new NumericUpDown();
             label1 = new Label();
             label2 = new Label();
@@ -54,6 +53,7 @@
             label9 = new Label();
             numUD_seedMin = new NumericUpDown();
             numUD_seedMax = new NumericUpDown();
+            btn_step = new Button();
             ((System.ComponentModel.ISupportInitialize)numUD_initialPopulationSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numUD_maxPopulationSize).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numUD_generationsCount).BeginInit();
@@ -93,16 +93,6 @@
             btn_StartSimulation.UseVisualStyleBackColor = true;
             btn_StartSimulation.Click += btn_StartSimulation_Click;
             // 
-            // chkB_stepVisualization
-            // 
-            chkB_stepVisualization.AutoSize = true;
-            chkB_stepVisualization.Location = new Point(80, 466);
-            chkB_stepVisualization.Name = "chkB_stepVisualization";
-            chkB_stepVisualization.Size = new Size(131, 19);
-            chkB_stepVisualization.TabIndex = 3;
-            chkB_stepVisualization.Text = "Fitness Visualization";
-            chkB_stepVisualization.UseVisualStyleBackColor = true;
-            // 
             // numUD_generationsCount
             // 
             numUD_generationsCount.Location = new Point(139, 64);
@@ -110,7 +100,7 @@
             numUD_generationsCount.Name = "numUD_generationsCount";
             numUD_generationsCount.Size = new Size(120, 23);
             numUD_generationsCount.TabIndex = 4;
-            numUD_generationsCount.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            numUD_generationsCount.Value = new decimal(new int[] { 100, 0, 0, 0 });
             numUD_generationsCount.ValueChanged += numUD_generationsCount_ValueChanged;
             // 
             // label1
@@ -144,9 +134,9 @@
             // 
             listB_errorMessages.FormattingEnabled = true;
             listB_errorMessages.ItemHeight = 15;
-            listB_errorMessages.Location = new Point(703, 715);
+            listB_errorMessages.Location = new Point(854, 715);
             listB_errorMessages.Name = "listB_errorMessages";
-            listB_errorMessages.Size = new Size(549, 34);
+            listB_errorMessages.Size = new Size(398, 34);
             listB_errorMessages.TabIndex = 9;
             // 
             // picB_populationSpace
@@ -305,11 +295,22 @@
             numUD_seedMax.Value = new decimal(new int[] { 2, 0, 0, 0 });
             numUD_seedMax.ValueChanged += numUD_seedMax_ValueChanged;
             // 
+            // btn_step
+            // 
+            btn_step.Location = new Point(703, 718);
+            btn_step.Name = "btn_step";
+            btn_step.Size = new Size(145, 31);
+            btn_step.TabIndex = 27;
+            btn_step.Text = "Krok";
+            btn_step.UseVisualStyleBackColor = true;
+            btn_step.Click += btn_step_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1264, 761);
+            Controls.Add(btn_step);
             Controls.Add(numUD_seedMax);
             Controls.Add(numUD_seedMin);
             Controls.Add(label9);
@@ -332,7 +333,6 @@
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(numUD_generationsCount);
-            Controls.Add(chkB_stepVisualization);
             Controls.Add(btn_StartSimulation);
             Controls.Add(numUD_maxPopulationSize);
             Controls.Add(numUD_initialPopulationSize);
@@ -354,7 +354,6 @@
         private NumericUpDown numUD_initialPopulationSize;
         private NumericUpDown numUD_maxPopulationSize;
         private Button btn_StartSimulation;
-        private CheckBox chkB_stepVisualization;
         private NumericUpDown numUD_generationsCount;
         private Label label1;
         private Label label2;
@@ -377,5 +376,6 @@
         private Label label9;
         private NumericUpDown numUD_seedMin;
         private NumericUpDown numUD_seedMax;
+        private Button btn_step;
     }
 }
